@@ -55,7 +55,7 @@ def make_info_event() -> Event:
     )
 
 async def kokoro_wav_bytes(session: ClientSession, text: str, voice: str) -> bytes:
-    payload = {"model": "kokoro", "input": text, "voice": voice}
+    payload = {"model": "kokoro", "input": text, "voice": voice,"response_format":"wav"}
     async with session.post(KOKORO_URL, json=payload) as resp:
         resp.raise_for_status()
         return await resp.read()
