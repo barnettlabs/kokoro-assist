@@ -21,4 +21,4 @@ services:
       - "10200:10200"
     environment:
       - KOKORO_URL=http://kokoro:8880/v1/audio/speech
-      - KOKORO_VOICE=af
+      - KOKORO_VOICE=af_heart
