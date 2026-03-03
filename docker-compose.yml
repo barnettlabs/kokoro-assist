@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
+    container_name: kokoro
+    restart: unless-stopped
+    runtime: nvidia
+    environment:
+      - CUDA_VISIBLE_DEVICES=GPU-50b74d27-cfe4-571c-65b0-9ff9b344cb18
+    ports:
+      - "8880:8880"
+
+  wyoming-kokoro:
+    build:
+      context: ./wyoming-kokoro
+    container_name: wyoming-kokoro
+    restart: unless-stopped
+    depends_on:
+      - kokoro
+    ports:
+      - "10200:10200"
+    environment:
+      - KOKORO_URL=http://kokoro:8880/v1/audio/speech
+      - KOKORO_VOICE=af
