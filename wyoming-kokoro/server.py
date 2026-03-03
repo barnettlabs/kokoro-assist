@@ -16,22 +16,36 @@ HOST = os.getenv("WYOMING_HOST", "0.0.0.0")
 PORT = int(os.getenv("WYOMING_PORT", "10200"))
 SAMPLES_PER_CHUNK = int(os.getenv("SAMPLES_PER_CHUNK", "2048"))
 
+print(f"wyoming-kokoro starting on {HOST}:{PORT}, voice={DEFAULT_VOICE}", flush=True)
+
 def make_info_event() -> Event:
-    # Minimal info reply for HA after it sends "describe"
     return Event(
         type="info",
         data={
             "tts": [
                 {
                     "name": "kokoro",
-                    "models": [
+                    "description": "Kokoro TTS via HTTP bridge",
+                    "attribution": {
+                        "name": "Kokoro",
+                        "url": "https://huggingface.co/hexgrad/Kokoro-82M",
+                    },
+                    "installed": True,
+                    "voices": [
                         {
-                            "name": "kokoro",
-                            "languages": ["en"],
+                            "name": DEFAULT_VOICE,
+                            "description": f"Kokoro voice {DEFAULT_VOICE}",
+                            "attribution": {
+                                "name": "Kokoro",
+                                "url": "https://huggingface.co/hexgrad/Kokoro-82M",
+                            },
                             "installed": True,
-                            "speakers": [{"name": DEFAULT_VOICE}],
+                            "languages": ["en"],
+                            "speakers": None,
+                            "version": None,
                         }
                     ],
+                    "version": None,
                 }
             ]
         },
@@ -53,15 +67,11 @@ def wav_to_pcm_chunks(wav_bytes: bytes, samples_per_chunk: int):
     bytes_per_sample = width * channels
     bytes_per_chunk = bytes_per_sample * samples_per_chunk
     num_chunks = int(math.ceil(len(frames) / bytes_per_chunk)) if bytes_per_chunk else 0
-
     chunks = []
     for i in range(num_chunks):
-        start = i * bytes_per_chunk
-        end = (i + 1) * bytes_per_chunk
-        chunk = frames[start:end]
+        chunk = frames[i * bytes_per_chunk : (i + 1) * bytes_per_chunk]
         if chunk:
             chunks.append(chunk)
-
     return rate, width, channels, chunks
 
 class KokoroTtsHandler(AsyncEventHandler):
@@ -81,6 +91,8 @@ class KokoroTtsHandler(AsyncEventHandler):
         await self.write_event(AudioStop().event())
 
     async def handle_event(self, event: Event) -> bool:
+        print("event:", event.type, flush=True)
+
         if event.type == "describe":
             await self.write_event(make_info_event())
             return True
