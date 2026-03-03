@@ -12,8 +12,7 @@ services:
       - "8880:8880"
 
   wyoming-kokoro:
-    build:
-      context: ./wyoming-kokoro
+    image: wyoming-kokoro:latest
     container_name: wyoming-kokoro
     restart: unless-stopped
     depends_on:
